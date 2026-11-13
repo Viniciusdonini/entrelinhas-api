@@ -1,0 +1,295 @@
+# Entrelinhas API — demonstração executável pelo REST Client do VS Code.
+# Inicie a API e prepare DEMO_EMAIL/DEMO_PASSWORD no .env ao lado deste arquivo.
+# Execute cada pedido manualmente, de cima para baixo, usando Send Request.
+# Os tokens e IDs abaixo são referências a respostas, nunca valores reais gravados.
+# Respostas nomeadas precisam ser executadas antes dos pedidos que dependem delas.
+# Não apague catálogos antes de excluir o livro criado nesta sequência.
+
+@baseUrl = http://localhost:8000/api
+@token = {{login.response.body.$.data.token}}
+@authorId = {{createAuthor.response.body.$.data.id}}
+@genreId = {{createGenre.response.body.$.data.id}}
+@shelfId = {{createShelf.response.body.$.data.id}}
+@bookId = {{createBook.response.body.$.data.id}}
+
+### Disponibilidade pública — esperado: 200
+# @name health
+GET {{baseUrl}}/health
+Accept: application/json
+
+### Proteção sem autenticação — esperado: 401
+# @name booksWithoutToken
+GET {{baseUrl}}/books
+Accept: application/json
+
+### Login da conta preparada pelo seeder — esperado: 200
+# @name login
+POST {{baseUrl}}/auth/login
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "{{$dotenv DEMO_EMAIL}}",
+  "password": "{{$dotenv DEMO_PASSWORD}}"
+}
+
+### Perfil da sessão — esperado: 200
+# @name me
+GET {{baseUrl}}/auth/me
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### AUTORES — listar — esperado: 200
+# @name listAuthors
+GET {{baseUrl}}/authors
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### AUTORES — criar registro exclusivo da demonstração — esperado: 201
+# @name createAuthor
+POST {{baseUrl}}/authors
+Accept: application/json
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Autor REST {{$guid}}",
+  "bio": "Registro criado pelo roteiro de demonstração da API."
+}
+
+### AUTORES — consultar o registro criado — esperado: 200
+# @name showAuthor
+GET {{baseUrl}}/authors/{{authorId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### AUTORES — editar — esperado: 200
+# @name updateAuthor
+PUT {{baseUrl}}/authors/{{authorId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Autor revisado {{authorId}}",
+  "bio": "Biografia editada pelo roteiro REST."
+}
+
+### GÊNEROS — listar — esperado: 200
+# @name listGenres
+GET {{baseUrl}}/genres
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### GÊNEROS — criar — esperado: 201
+# @name createGenre
+POST {{baseUrl}}/genres
+Accept: application/json
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Gênero REST {{$guid}}",
+  "description": "Gênero temporário da demonstração."
+}
+
+### GÊNEROS — consultar — esperado: 200
+# @name showGenre
+GET {{baseUrl}}/genres/{{genreId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### GÊNEROS — editar — esperado: 200
+# @name updateGenre
+PUT {{baseUrl}}/genres/{{genreId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Gênero revisado {{genreId}}",
+  "description": "Descrição editada pelo roteiro REST."
+}
+
+### ESTANTES — listar — esperado: 200
+# @name listShelves
+GET {{baseUrl}}/shelves
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ESTANTES — criar — esperado: 201
+# @name createShelf
+POST {{baseUrl}}/shelves
+Accept: application/json
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Estante REST {{$guid}}",
+  "description": "Estante temporária da demonstração.",
+  "location": "Ambiente local"
+}
+
+### ESTANTES — consultar — esperado: 200
+# @name showShelf
+GET {{baseUrl}}/shelves/{{shelfId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ESTANTES — editar — esperado: 200
+# @name updateShelf
+PUT {{baseUrl}}/shelves/{{shelfId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Estante revisada {{shelfId}}",
+  "description": "Estante editada pelo roteiro REST.",
+  "location": "Biblioteca de demonstração"
+}
+
+### LIVROS — listar — esperado: 200
+# @name listBooks
+GET {{baseUrl}}/books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### LIVROS — criar usando os catálogos já criados/editados — esperado: 201
+# @name createBook
+POST {{baseUrl}}/books
+Accept: application/json
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Livro da demonstração REST",
+  "author": "{{updateAuthor.response.body.$.data.name}}",
+  "genre": "{{updateGenre.response.body.$.data.name}}",
+  "totalPages": 240,
+  "currentPage": 0,
+  "status": "wantToRead",
+  "notes": "Livro criado para testar a API e removido ao final da sequência.",
+  "coverUrl": "",
+  "shelfId": "{{shelfId}}"
+}
+
+### LIVROS — consultar — esperado: 200
+# @name showBook
+GET {{baseUrl}}/books/{{bookId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### LIVROS — editar — esperado: 200
+# @name updateBook
+PUT {{baseUrl}}/books/{{bookId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Livro REST editado",
+  "author": "{{updateAuthor.response.body.$.data.name}}",
+  "genre": "{{updateGenre.response.body.$.data.name}}",
+  "totalPages": 240,
+  "currentPage": 45,
+  "status": "reading",
+  "notes": "Progresso e anotações alterados por uma chamada HTTP.",
+  "coverUrl": "",
+  "shelfId": "{{shelfId}}"
+}
+
+### LIVROS — regra de negócio: página além do total — esperado: 422
+# @name invalidBookProgress
+PUT {{baseUrl}}/books/{{bookId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Entrada que deve ser recusada",
+  "author": "{{updateAuthor.response.body.$.data.name}}",
+  "genre": "{{updateGenre.response.body.$.data.name}}",
+  "totalPages": 240,
+  "currentPage": 241,
+  "status": "reading",
+  "notes": "",
+  "coverUrl": "",
+  "shelfId": "{{shelfId}}"
+}
+
+### Catálogo em uso não deve ser removido — esperado: 409
+# @name deleteUsedAuthor
+DELETE {{baseUrl}}/authors/{{authorId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### LIVROS — excluir SOMENTE o livro criado por createBook — esperado: 204
+# @name deleteBook
+DELETE {{baseUrl}}/books/{{bookId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Confirmar a exclusão do livro — esperado: 404
+# @name showDeletedBook
+GET {{baseUrl}}/books/{{bookId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### AUTORES — excluir o catálogo agora sem o livro de teste — esperado: 204
+# @name deleteAuthor
+DELETE {{baseUrl}}/authors/{{authorId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### GÊNEROS — excluir — esperado: 204
+# @name deleteGenre
+DELETE {{baseUrl}}/genres/{{genreId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ESTANTES — excluir — esperado: 204
+# @name deleteShelf
+DELETE {{baseUrl}}/shelves/{{shelfId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Logout da sessão usada nesta sequência — esperado: 204
+# @name logout
+POST {{baseUrl}}/auth/logout
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Token encerrado não deve autorizar chamadas — esperado: 401
+# @name revokedToken
+GET {{baseUrl}}/auth/me
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### CADASTRO OPCIONAL — fora da sequência principal — esperado: 201
+# Preencha REGISTER_EMAIL no .env com um e-mail ainda não utilizado.
+# Usa DEMO_PASSWORD do .env, sem senha fixa neste arquivo.
+# Este bloco cria outra conta; não é necessário para usar a conta do seeder.
+# @name register
+POST {{baseUrl}}/auth/register
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Conta de demonstração REST",
+  "email": "{{$dotenv REGISTER_EMAIL}}",
+  "password": "{{$dotenv DEMO_PASSWORD}}",
+  "password_confirmation": "{{$dotenv DEMO_PASSWORD}}"
+}
+
+### Perfil da conta cadastrada pelo bloco opcional — esperado: 200
+# @name registeredMe
+GET {{baseUrl}}/auth/me
+Accept: application/json
+Authorization: Bearer {{register.response.body.$.data.token}}
+
+### Encerrar o token criado pelo cadastro opcional — esperado: 204
+# @name registeredLogout
+POST {{baseUrl}}/auth/logout
+Accept: application/json
+Authorization: Bearer {{register.response.body.$.data.token}}
