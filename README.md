@@ -183,5 +183,3 @@ A apresentação é presencial, tem **cinco minutos**, não exige slides nem ví
 Para Paradigmas, envie **somente os links dos dois repositórios finais em texto online**. Não anexe arquivos ou código nessa entrega. A versão publicada deve corresponder à apresentada e estar acessível aos professores.
 
 A próxima terça após 13/11/2026 é **17/11/2026**. O prazo anterior era 15/11/2026 às 23h59; não presuma que a data de apresentação prorroga o prazo do Moodle.
-
-O desenvolvimento contou com apoio de IA, permitido no enunciado. O aluno deve revisar o código, entender suas decisões e ser capaz de explicá-lo.
